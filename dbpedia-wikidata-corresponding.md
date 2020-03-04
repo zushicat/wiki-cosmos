@@ -1,4 +1,4 @@
-## xxx
+## Getting corresponding ID/resource between Wikidata and DBpedia
 
 
 ### Case 1: You know the wikidata ID and like to know the corresponding DBpedia resource
