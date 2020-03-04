@@ -11,7 +11,10 @@ Collection of scripts and links regarding dbpedia/wikidata data retrieval
 | Wikidata | sparql request        | https://query.wikidata.org/                                    |
 | Wikidata | request by id         | https://www.wikidata.org/wiki/Q211340                          |
 | Wikidata | request json by id    | https://www.wikidata.org/wiki/Special:EntityData/Q1998962.json |
-| Github   | python sparql wrapper | https://rdflib.github.io/sparqlwrapper/                        |
+
+
+There is a Python Sparql wrapper available at: https://rdflib.github.io/sparqlwrapper/ 
+
 
 
 ## Example Requests
