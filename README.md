@@ -15,6 +15,7 @@ Collection of scripts and links regarding dbpedia/wikidata data retrieval
 
 There is a Python Sparql wrapper available at: https://rdflib.github.io/sparqlwrapper/ (https://pypi.org/project/SPARQLWrapper/)
 
+For a simple implementation example, see: python_sparql_wrapper_example.py
 
 
 ## Example Requests
