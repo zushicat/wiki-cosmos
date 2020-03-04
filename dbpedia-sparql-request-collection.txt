@@ -21,6 +21,20 @@ SELECT DISTINCT ?page, ?subcat WHERE {
 
 
 ----------------------------------------
+In which categories falls the resource "Cheeseburger"?
+categoryName restricted to english
+----------------------------------------
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?categoryUri ?categoryName
+WHERE {
+    <http://dbpedia.org/resource/Cheeseburger> dcterms:subject ?categoryUri.
+    ?categoryUri rdfs:label ?categoryName.
+    FILTER (lang(?categoryName) = "en")
+}
+
+
+----------------------------------------
 all pages traverse from category sandwiches to subcategories
 that are a thing and have the type food
 ----------------------------------------
