@@ -1,0 +1,503 @@
+This is a loose collection of various dbpedia Sparql requests.
+
+
+Use with http://dbpedia.org/snorql/
+(Basic prefixes (but not all!) are included by default)
+
+
+
+----------------------------------------
+all pages in categories under Category:Sandwiches
+(traverse from parent to subcategories)
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?page, ?subcat WHERE {
+    ?subcat skos:broader* cat:Sandwiches .
+    ?page dcterms:subject ?subcat
+}
+
+
+----------------------------------------
+all pages traverse from category sandwiches to subcategories
+that are a thing and have the type food
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?subcat ?page WHERE 
+{
+    ?subcat skos:broader* cat:Sandwiches .
+    ?page dcterms:subject ?subcat .
+    ?page rdf:type owl:Thing .
+    ?page rdf:type <http://dbpedia.org/ontology/Food>
+}
+GROUP BY ?subcat ?page
+
+
+----------------------------------------
+all subcategories with pages und Foods if type Thing, Food and FunctionalSubstance
+! quite time consuming !
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?count ?subcat ?pages WHERE		# SELECT (COUNT(*) as ?count) WHERE # number of all results
+{
+	{
+		SELECT DISTINCT ?subcat (group_concat(distinct?page ; separator = ",") AS ?pages) (COUNT(distinct?page) AS ?count) WHERE
+		{
+			?subcat skos:broader* cat:Foods .
+			?page dcterms:subject ?subcat .
+			?page rdf:type owl:Thing, dbo:Food, <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#FunctionalSubstance> .
+		}
+	       GROUP BY ?subcat ?pages
+	}
+        FILTER (?count>=10)
+}
+ORDER BY (?subcat) 	# ORDER BY DESC(?count)	# order alpha. or by counted pages
+#LIMIT 350									# limit and offset if necessary
+#OFFSET 0
+
+----------------------------------------
+all pages under Food with ingredient contains "Tomato"
+----------------------------------------
+SELECT ?food, ?ingedient WHERE {
+  ?food rdf:type <http://dbpedia.org/ontology/Food> .
+  ?food  dbo:ingredient ?ingedient .
+  FILTER REGEX(STR(?ingedient), "Tomato") .
+}
+GROUP BY ?food ?ingedient
+LIMIT 100
+
+
+----------------------------------------
+all pages under Food with ingredients
+----------------------------------------
+SELECT ?food ?count
+WHERE
+{
+  {
+    SELECT ?food (COUNT(?ingedient) AS ?count) WHERE {
+      ?food rdf:type <http://dbpedia.org/ontology/Food> .
+      ?food  dbo:ingredient ?ingedient .
+    }
+    #GROUP BY ?food
+  }
+}
+ORDER BY DESC(?count)
+LIMIT 100
+
+
+----------------------------------------
+all pages under Food with with count  grouped ingredients
+----------------------------------------
+SELECT ?count_ingredients ?food ?all_ingedients
+WHERE
+{
+  {
+    SELECT ?food (group_concat(distinct ?ingedient ; separator = ",") AS ?all_ingedients) (COUNT(?ingedient) AS ?count_ingredients) WHERE
+    {
+      ?food rdf:type <http://dbpedia.org/ontology/Food> .
+      ?food  dbo:ingredient ?ingedient .
+    }
+  }
+}
+ORDER BY DESC(?count)
+LIMIT 100
+group by ?propset ?predicate
+
+
+----------------------------------------
+all pages with filtered search term in about
+----------------------------------------
+SELECT ?food WHERE
+{
+	?food rdf:type <http://dbpedia.org/ontology/Food> .
+	?food dbo:abstract ?abstract
+	FILTER REGEX(STR(?abstract), "Zwiebelringe")
+}
+
+
+----------------------------------------
+all pages with "brötchen" and "fish" in abstract(s)
+depends on available languages of abstracts
+----------------------------------------
+SELECT ?food ?abstract WHERE
+{
+	?food rdf:type <http://dbpedia.org/ontology/Food> .
+	?food dbo:abstract ?abstract
+	FILTER (REGEX(STR(?food), "br\u00F6tchen") && REGEX(STR(?abstract), "pescado")) # german and spanish
+}
+
+----------------------------------------
+
+----------------------------------------
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?name ?food ?subject ?ingredients WHERE
+{
+  {
+    SELECT ?name ?food (group_concat(distinct ?subject ; separator = ",") AS ?subject) (group_concat(distinct ?ingredients ; separator = ",") AS ?ingredients) WHERE
+    {
+      ?food rdf:type <http://dbpedia.org/ontology/Food> .
+      ?food dcterms:subject ?subject .
+      ?food foaf:name ?name .
+      ?food owl:sameAs ?sameAs .
+      ?food dbo:abstract ?abstract
+      OPTIONAL { ?food dbo:ingredient ?ingredients }
+      #FILTER (?sameAs="Zwiebelringe"^^xsd:string)
+      FILTER REGEX(STR(?abstract), "Zwiebelringe") .
+    }
+  }
+}
+LIMIT 100
+
+
+----------------------------------------
+get all subcategories
+https://stackoverflow.com/questions/37596172/how-to-extract-sub-categories-of-different-levels-from-a-root-category-using-dbp
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?subject ?label WHERE 
+{
+	?concept skos:broader* cat:Foods .
+	?concept rdfs:label ?label .
+	?concept ^dct:subject/dct:subject+ ?subject .
+} 
+LIMIT 1000
+
+
+----------------------------------------
+get all subcategories unter parent category
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT (COUNT(?subject) AS ?count) ?concept (group_concat(distinct ?subject ; separator = ",") AS ?subjects) WHERE
+#SELECT (COUNT(*) as ?count) WHERE # == 279281
+{
+	{
+		SELECT DISTINCT ?concept ?subject
+		{
+			?concept skos:broader* cat:Foods .
+			?concept ^dct:subject/dct:subject+ ?subject .
+			FILTER REGEX(STR(?subject), "Category:") .
+		}
+        LIMIT 1000
+	}
+}
+
+
+----------------------------------------
+all categories (without lists) under Lists_of_foods
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT (COUNT(?subject) AS ?count) ?concept (group_concat(distinct ?subject ; separator = ",") AS ?subjects) WHERE
+#SELECT (COUNT(*) as ?count) WHERE
+#SELECT DISTINCT ?concept ?subject WHERE
+{
+	{
+		SELECT DISTINCT ?concept ?subject
+		{
+			?concept skos:broader* cat:Lists_of_foods .
+			?concept ^dct:subject/dct:subject+ ?subject .
+			FILTER (REGEX(STR(?subject), "Category:", "i") && !REGEX(STR(?subject), "List", "i"))  .
+		}
+	}
+}
+
+
+----------------------------------------
+categories depth of 2 (without lists) under Category:Cuisine
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT (COUNT(?subject) AS ?count) ?concept (group_concat(distinct ?subject ; separator = ",") AS ?subjects) WHERE
+{
+	{
+		SELECT DISTINCT ?concept ?subject
+		{
+			# depth of 2 (delete {1,2} for depth of 1, * for all
+			?concept skos:broader{1,2} cat:Cuisine .
+			?concept ^dct:subject/dct:subject+ ?subject .
+			FILTER (REGEX(STR(?subject), "Category:", "i") && !REGEX(STR(?subject), "List", "i"))  .
+		}
+	}
+}
+
+
+----------------------------------------
+Categories relationship -> parent node (children) of depth n under Category:Foods
+change n in skos:broader{n} to see result of given depth
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT  ?parents ?node ?countChildren   WHERE
+{
+	{
+		SELECT  ?node (COUNT(?child) AS ?countChildren) ?parents
+		{
+			?node skos:broader{1} cat:Foods .
+            ?node skos:broader ?parents .
+			?node ^dct:subject/dct:subject+ ?child .
+            FILTER (REGEX(STR(?node), "category:", "i") && !REGEX(STR(?node), "list", "i"))  .
+		}
+	}
+}
+ORDER BY (?parents)
+
+
+----------------------------------------
+
+----------------------------------------
+http://www.dataversity.net/retrieving-using-taxonomy-data-dbpedia/
+
+
+----------------------------------------
+get page and english abstracts only under Category:Kebabs
+restrict to rdf:type dbo:Food
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?page ?abstract WHERE 
+{
+	?page dcterms:subject cat:Kebabs .
+	?page rdf:type <http://dbpedia.org/ontology/Food> .
+	?page dbo:abstract ?abstract .
+	FILTER langMatches(lang(?abstract),'en')
+}
+
+
+----------------------------------------
+pages type Food with "is dbo:wikiPageRedirects of"
+(instead of the other direction: "dbo:wikiPageRedirects")
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?page ?redirectsTo WHERE 
+{
+    ?page dcterms:subject cat:Sushi .
+    ?page rdf:type dbo:Food .
+    ?redirectsTo dbo:wikiPageRedirects ?page .
+}
+
+
+----------------------------------------
+pages type Food with english abstract string and "is dbo:wikiPageRedirects of" as redirectLabel
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT  ?page (group_concat(?redirectLabel;separator=",") as ?redirectLabel) xsd:string(?abstract) WHERE 
+{
+    ?page dcterms:subject cat:Kebabs.
+    ?page rdf:type dbo:Food .
+    ?redirectsTo dbo:wikiPageRedirects ?page .
+    ?redirectsTo rdfs:label ?redirectLabel .
+
+    ?page dbo:abstract ?abstract .
+    FILTER langMatches(lang(?abstract),'en')
+}
+
+
+----------------------------------------
+extract all categories under Fast_food
+https://stackoverflow.com/questions/41294136/how-to-extract-dbpedia-categories-through-dbpedia-spotlight
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+select distinct ?subcat ?subsubcat where {
+  ?subcat  skos:broader* cat:Fast_food .
+  optional { ?subsubcat skos:broader ?subcat }
+} 
+group by ?subcat
+order by(?subcat)
+
+
+----------------------------------------
+pages under Category:soup restrict to english page, all sameAs labels, all redirect labels, english abstract
+(restricted to "Chicken_soup")
+concat all abstract text language versions by
+- replace: SELECT ?page ?label ?sameAs ?redirectLabel (group_concat(xsd:string(?abstract);separator=" ") as ?abstract) WHERE 
+- delete: FILTER langMatches(lang(?abstract),'en') .
+----------------------------------------
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?page ?label ?sameAs ?redirectLabel xsd:string(?abstract) as ?abstract WHERE 
+{
+   ?page dct:subject cat:Soups .
+   ?page rdfs:label ?label .
+   ?page dbo:abstract ?abstract .
+   FILTER langMatches(lang(?abstract),'en') .
+  
+   FILTER (REGEX(STR(?page), "Chicken_soup") && langMatches(lang(?label), "en")) .
+   
+   {
+       SELECT ?page (group_concat(xsd:string(?sameAs);separator=",") as ?sameAs) as ?sameAs  WHERE
+       {
+           ?page (owl:sameAs|^owl:sameAs)* ?sameAsRef .
+           ?sameAsRef rdfs:label ?sameAs
+       }
+   }
+   {
+       SELECT ?page (group_concat(xsd:string(?redirectLabel);separator=",") as ?redirectLabel)  WHERE
+       {
+           ?redirectsTo dbo:wikiPageRedirects ?page .
+           ?redirectsTo rdfs:label ?redirectLabel .
+       }
+   }
+} 
+
+----------------------------------------
+same as above, but with more (optional) output (and distinct output)
+----------------------------------------
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX : <http://dbpedia.org/resource/>
+PREFIX dbpedia2: <http://dbpedia.org/property/>
+PREFIX dbpedia: <http://dbpedia.org/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT 	?page xsd:string(?label) as ?label 
+		(group_concat(DISTINCT xsd:string(?type);separator=",")) as ?type 
+		(group_concat(DISTINCT xsd:string(?subject);separator=",")) as ?subject 
+		?sameAs 
+		?redirectLabel 
+		(group_concat(concat("{\"", lang(?abstract),"\": \"" , xsd:string(?abstract), "\"}");separator=",")) as ?abstract
+{
+   ?page dct:subject cat:Drinks .
+   ?page rdfs:label ?label .
+   ?page dbo:abstract ?abstract .
+   ?page dcterms:subject ?subject .
+   
+   FILTER (langMatches(lang(?abstract),'en')|| langMatches(lang(?abstract),'de')) .
+  
+   FILTER (langMatches(lang(?label), "en")) .
+   
+   OPTIONAL {
+       SELECT ?page (group_concat(DISTINCT xsd:string(?sameAs);separator=",") as ?sameAs) as ?sameAs  WHERE
+       {
+           ?page (owl:sameAs|^owl:sameAs)* ?sameAsRef .
+           ?sameAsRef rdfs:label ?sameAs
+       }
+   }
+   {
+       SELECT ?page ?subject WHERE
+       {
+           ?page dcterms:subject ?subject .
+       }
+   }
+   OPTIONAL {
+       SELECT ?page ?type WHERE
+       {
+           ?page rdf:type ?type .
+       }
+   }
+   OPTIONAL {
+       SELECT ?page (group_concat(DISTINCT xsd:string(?redirectLabel);separator=",") as ?redirectLabel)  WHERE
+       {
+           ?redirectsTo dbo:wikiPageRedirects ?page .
+           ?redirectsTo rdfs:label ?redirectLabel .
+       }
+   }
+}
+
+----------------------------------------
+same as above plus en rdfs:label of types, dbo:product labels ...
+----------------------------------------
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX : <http://dbpedia.org/resource/>
+PREFIX dbpedia2: <http://dbpedia.org/property/>
+PREFIX dbpedia: <http://dbpedia.org/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT	?page 
+	?label 
+        (group_concat(DISTINCT xsd:string(?product);separator=",")) as ?product
+        (group_concat(DISTINCT xsd:string(?hypernym);separator=",")) as ?hypernym
+        (group_concat(DISTINCT xsd:string(?typeLabel);separator=",")) as ?typeLabel
+	?sameAs 
+	?redirectLabel 
+	(group_concat(DISTINCT xsd:string(?subject);separator=",")) as ?subject
+	(group_concat(DISTINCT xsd:string(?type);separator=",")) as ?type
+	WHERE 
+	{
+	   #?page rdf:type owl:Thing .
+	   #?page rdf:type <http://dbpedia.org/ontology/Food> .
+	   ?page rdfs:label ?label .
+	   ?page rdf:type ?type .
+	   ?page rdfs:label "Pizza"@de .
+
+   
+	   FILTER (langMatches(lang(?label), "de")) .
+          
+   
+	   OPTIONAL {
+		   SELECT ?page (group_concat(concat('{"', lang(?sameAs),'": "' , xsd:string(?sameAs), '"}');separator=",") as ?sameAs) as ?sameAs  WHERE
+		   {
+			   ?page (owl:sameAs|^owl:sameAs)* ?sameAsRef .
+			   ?sameAsRef rdfs:label ?sameAs
+		   }
+	   }
+	   OPTIONAL {
+		   SELECT ?page (group_concat(xsd:string(?redirectLabel);separator=",") as ?redirectLabel)  WHERE
+		   {
+			   ?redirectsTo dbo:wikiPageRedirects ?page .
+			   ?redirectsTo rdfs:label ?redirectLabel .
+		   }
+	   }
+	   OPTIONAL {
+		   SELECT ?page ?subject WHERE
+		   {
+			   ?page dcterms:subject ?subject .
+		   }
+	   }
+	   OPTIONAL {
+		   SELECT ?type ?typeLabel WHERE
+		   {
+			   ?type a owl:Class .
+			   ?type rdfs:label ?typeLabel .
+			   FILTER (langMatches(lang(?typeLabel), "en")) .
+		   }
+	   }
+	   OPTIONAL { SELECT ?page ?product WHERE { ?redirectsToProduct dbo:product ?page . ?redirectsToProduct rdfs:label ?product . } }
+	   OPTIONAL { SELECT ?page ?hypernym WHERE { ?refHypernym <http://purl.org/linguistics/gold/hypernym> ?page . ?refHypernym rdfs:label ?hypernym .} }
+	 }
