@@ -5,9 +5,9 @@ Collection of scripts and links regarding dbpedia/wikidata data retrieval
 ## Request Links
 | Project  | Used for              | URL                                                            |
 |----------|-----------------------|----------------------------------------------------------------|
-| DBPedia  | sparql request        | https://dbpedia.org/sparql                                     |
-| DBPedia  | sparql request        | http://dbpedia.org/snorql/                                     |
-| DBPedia  | request by resource   | http://dbpedia.org/resource/Sushi                              |
+| DBpedia  | sparql request        | https://dbpedia.org/sparql                                     |
+| DBpedia  | sparql request        | http://dbpedia.org/snorql/                                     |
+| DBpedia  | request by resource   | http://dbpedia.org/resource/Sushi                              |
 | Wikidata | sparql request        | https://query.wikidata.org/                                    |
 | Wikidata | request by id         | https://www.wikidata.org/wiki/Q211340                          |
 | Wikidata | request json by id    | https://www.wikidata.org/wiki/Special:EntityData/Q1998962.json |
@@ -21,7 +21,7 @@ For a simple implementation example, see: python_sparql_wrapper_example.py
 ## Example Requests
 These are simple request examples for illustration.
 
-### DBPedia Sparql
+### DBpedia Sparql
 For more examples, see: dbpedia-sparql-request-collection.txt
 
 
@@ -40,7 +40,7 @@ WHERE {
 LIMIT 5
 ```
 
-Results:
+Result:
 | page                                       | subcat                                             |
 |--------------------------------------------|----------------------------------------------------|
 http://dbpedia.org/resource/Blancmange       | http://dbpedia.org/resource/Category:Almond_dishes |
@@ -120,3 +120,18 @@ https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q44&props=labels|ali
     "success": 1
 }
 ```
+
+## Remarks
+
+#### Wikidata
+- Page of a node: https://www.wikidata.org/wiki/Q44
+- Json data of a node: https://www.wikidata.org/wiki/Special:EntityData/Q44.json
+- Request selected properties of one (or more) nodes: https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q44&props=labels&languages=en&format=json  (--> i.e. props=labels)
+
+#### DBpedia
+Resource titles of Wikipedia and DBpedia are corresponding:
+https://en.wikipedia.org/wiki/Pita ---> http://dbpedia.org/resource/Pita ( == http://dbpedia.org/page/Pita)
+
+#### Maybe helpful links:
+- https://www.wikidata.org/w/api.php?action=help&modules=wbgetentities
+- https://stackoverflow.com/questions/31266398/getting-readable-results-from-wikidata
