@@ -1,7 +1,7 @@
 This is a loose collection of various dbpedia Sparql requests.
 
 
-Use with http://dbpedia.org/snorql/
+Use with http://dbpedia.org/snorql/ or https://dbpedia.org/sparql
 (Basic prefixes (but not all!) are included by default)
 
 
