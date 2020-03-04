@@ -14,8 +14,12 @@ Collection of scripts and links regarding dbpedia/wikidata data retrieval
 | Github   | python sparql wrapper | https://rdflib.github.io/sparqlwrapper/                        |
 
 
-## Example: Wikidata Sparql
-Resquest for beer style (Q1998962)
+## Example Requests
+These are simple request examples for illustration.
+
+
+### Wikidata Sparql
+Request for beer style (Q1998962)
 https://query.wikidata.org/
 ```
 SELECT ?item ?itemLabel ?_image ?_subclass_of ?_subclass_ofLabel WHERE {
@@ -39,7 +43,7 @@ Result:
 
 
 
-## Example: Wikidata API
+### Wikidata API
 Request labels and aliases in english, german and italian for beer style (Q1998962) and beer (Q44)
 For printer friendy result in browser: skip "format=json" in request
 ```
