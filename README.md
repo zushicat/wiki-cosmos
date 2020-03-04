@@ -135,3 +135,5 @@ https://en.wikipedia.org/wiki/Pita ---> http://dbpedia.org/resource/Pita ( == ht
 #### Maybe helpful links:
 - https://www.wikidata.org/w/api.php?action=help&modules=wbgetentities
 - https://stackoverflow.com/questions/31266398/getting-readable-results-from-wikidata
+- https://stackoverflow.com/questions/56641827/how-to-get-wikidata-id-for-dbpedia-entities
+- https://stackoverflow.com/questions/39850833/how-i-can-know-the-equivalent-dbpedia-and-wikidata-properties
