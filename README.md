@@ -13,7 +13,7 @@ Collection of scripts and links regarding dbpedia/wikidata data retrieval
 | Wikidata | request json by id    | https://www.wikidata.org/wiki/Special:EntityData/Q1998962.json |
 
 
-There is a Python Sparql wrapper available at: https://rdflib.github.io/sparqlwrapper/ 
+There is a Python Sparql wrapper available at: https://rdflib.github.io/sparqlwrapper/ (https://pypi.org/project/SPARQLWrapper/)
 
 
 
