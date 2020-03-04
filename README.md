@@ -2,7 +2,7 @@
 Collection of scripts and links regarding dbpedia/wikidata data retrieval
 
 
-### Request Links
+## Request Links
 | Project  | Used for              | URL                                                            |
 |----------|-----------------------|----------------------------------------------------------------|
 | DBPedia  | sparql request        | https://dbpedia.org/sparql                                     |
@@ -14,7 +14,7 @@ Collection of scripts and links regarding dbpedia/wikidata data retrieval
 | Github   | python sparql wrapper | https://rdflib.github.io/sparqlwrapper/                        |
 
 
-### Example: Wikidata Sparql
+## Example: Wikidata Sparql
 Resquest for beer style (Q1998962)
 https://query.wikidata.org/
 ```
@@ -27,7 +27,7 @@ SELECT ?item ?itemLabel ?_image ?_subclass_of ?_subclass_ofLabel WHERE {
 LIMIT 5
 ```
 
-Returns:
+Result:
 | item       | itemLabel    | _image                 | _subclass_of | _subclass_ofLabel |
 |------------|--------------|------------------------|--------------|-------------------|
 | wd:Q4626   | Kölsch       | commons:Koelsch.jpg    | wd:Q261105   | Helles            |
@@ -38,7 +38,8 @@ Returns:
 
 
 
-### Example: Wikidata API
+
+## Example: Wikidata API
 Request labels and aliases in english, german and italian for beer style (Q1998962) and beer (Q44)
 For printer friendy result in browser: skip "format=json" in request
 ```
@@ -48,4 +49,37 @@ ids=Q1998962|Q44&
 props=labels|aliases&
 languages=en|de|it&
 format=json
+```
+
+Result for this request (for beer labels/aliases in english and german)
+https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q44&props=labels|aliases&languages=en|de
+
+```
+{
+    "entities": {
+        "Q44": {
+            "type": "item",
+            "id": "Q44",
+            "labels": {
+                "en": {
+                    "language": "en",
+                    "value": "beer"
+                },
+                "de": {
+                    "language": "de",
+                    "value": "Bier"
+                }
+            },
+            "aliases": {
+                "en": [
+                    {
+                        "language": "en",
+                        "value": "brew"
+                    }
+                ]
+            }
+        }
+    },
+    "success": 1
+}
 ```
