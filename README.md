@@ -20,6 +20,35 @@ There is a Python Sparql wrapper available at: https://rdflib.github.io/sparqlwr
 ## Example Requests
 These are simple request examples for illustration.
 
+### DBPedia Sparql
+For more examples, see: dbpedia-sparql-request-collection.txt
+
+
+Request subcategories of category "Cuisine"
+https://dbpedia.org/sparql
+```
+PREFIX cat: <http://dbpedia.org/resource/Category:>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?page, ?subcat
+WHERE {
+   ?subcat skos:broader* cat:Cuisine.
+   ?page dcterms:subject ?subcat
+}
+LIMIT 5
+```
+
+Results:
+| page                                       | subcat                                             |
+|--------------------------------------------|----------------------------------------------------|
+http://dbpedia.org/resource/Blancmange       | http://dbpedia.org/resource/Category:Almond_dishes |
+http://dbpedia.org/resource/Frutta_martorana | http://dbpedia.org/resource/Category:Almond_dishes |
+http://dbpedia.org/resource/Bakewell_tart    | http://dbpedia.org/resource/Category:Almond_dishes |
+http://dbpedia.org/resource/Biscuit_Tortoni  | http://dbpedia.org/resource/Category:Almond_dishes |
+http://dbpedia.org/resource/Gugelhupf        | http://dbpedia.org/resource/Category:Almond_dishes |
+
+
 
 ### Wikidata Sparql
 Request for beer style (Q1998962)
